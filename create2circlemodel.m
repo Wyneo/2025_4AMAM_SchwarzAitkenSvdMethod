@@ -1,4 +1,4 @@
-function [model,mesh_mod]=create2circlemesh(x,y,L,R,s_max,order)
+function model=create2circlemodel(x,y,L,R,s_max,order)
     % x,y : Coordonnées du centre de la construction globale
     % L : écart entre les deux centres des cercles
     % R : rayons des cercles
@@ -14,5 +14,8 @@ function [model,mesh_mod]=create2circlemesh(x,y,L,R,s_max,order)
     model=createpde; 
     geometryFromEdges(model,geom); %création d'une géométrie compréhensible par PDE Toolbox
 
-    mesh_mod=generateMesh(model,"hmax",s_max,"GeometricOrder",order)
+    generateMesh(model,"hmax",s_max,"GeometricOrder",order)
+    applyBoundaryCondition(model,"dirichlet","Face",[2,3],"u",0);
+    specifyCoefficients(model,"m",0,"d",0,"c",1,"a",0,"f",1,"Face",[2,3]);
+
 end
