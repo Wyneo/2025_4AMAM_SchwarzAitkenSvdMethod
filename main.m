@@ -1,5 +1,5 @@
-clear all
-close
+clear 
+close all
 
 R=2;
 L=3;
@@ -94,8 +94,12 @@ cg=findNodes(model2.Mesh,"region","Edge",5);
 % u_cd=interpolateSolution(results,model1.Mesh.Nodes(1,cd),model1.Mesh.Nodes(2,cd));
 
 % Rest_Fun_Diric=@(region,state) evalue(u_cd, region.x, region.y)
+y0=zeros(13,1);
+[mat_all_iter,cell_all_iter_bord,res_mod_gauche,res_mod_droit]=iter_solve(model1,model2,10,y0); 
+res_bord_droit=acc_aitkenSVD(cell_all_iter_bord{1}); 
+res_bord_gauche=acc_aitkenSVD(cell_all_iter_bord{2});
 
-[mat_all_iter,cell_all_iter_bord,res_mod_gauche,res_mod_droit]=iter_solve(model1,model2,10); 
+[mat_all_iter,cell_all_iter_bord,res_mod_gauche,res_mod_droit]=iter_solve(model1,model2,10,res_bord_droit); 
 res_bord_droit=acc_aitkenSVD(cell_all_iter_bord{1}); 
 res_bord_gauche=acc_aitkenSVD(cell_all_iter_bord{2});
 
