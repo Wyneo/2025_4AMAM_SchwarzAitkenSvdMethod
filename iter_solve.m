@@ -13,9 +13,20 @@ function [all_iter,all_iter_bord, results1, results2]=iter_solve(model1,model2,i
     all_iter_bord_cg=[];
 
     %Initialisation
+    % Première itération pour "intégrer le y0" dans la solution
+    applyBoundaryCondition(model1,"dirichlet","Edge",[1,2,4,5],"u",0);
+    applyBoundaryCondition(model1,"dirichlet","Edge",3,"u",0);
+
+    u_temp=solvepde(model1).NodalSolution;
+    u_temp(cd_1)=y0;
+
+    [p1,e1,t1]=meshToPet(model1.Mesh);
+    F1 = pdeInterpolant(p1,t1,u_temp);
+    cl_cd_temp=@(region,state) evaluate(F1,region.x,region.y);
+
     %Premier sous domaine
     applyBoundaryCondition(model1,"dirichlet","Edge",[1,2,4,5],"u",0);
-    applyBoundaryCondition(model1,"dirichlet","Edge",3,"u",cl_cd_1,"Vectorized","on");
+    applyBoundaryCondition(model1,"dirichlet","Edge",3,"u",cl_cd_temp);
 
     results1=solvepde(model1);
     u1=results1.NodalSolution;

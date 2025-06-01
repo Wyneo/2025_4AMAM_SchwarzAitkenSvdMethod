@@ -6,7 +6,7 @@ L=3;
 y=0; 
 x=0;
 
-long_EF_max=0.5;
+long_EF_max=0.05;
 ord_EF="Quadratic";
 
 % [model2c,mesh2c]=create2circlemesh(x,y,L,R,long_EF_max,ord_EF)
@@ -94,22 +94,25 @@ cg=findNodes(model2.Mesh,"region","Edge",5);
 % u_cd=interpolateSolution(results,model1.Mesh.Nodes(1,cd),model1.Mesh.Nodes(2,cd));
 
 % Rest_Fun_Diric=@(region,state) evalue(u_cd, region.x, region.y)
-y0=zeros(13,1);
-[mat_all_iter,cell_all_iter_bord,res_mod_gauche,res_mod_droit]=iter_solve(model1,model2,10,y0); 
-res_bord_droit=acc_aitkenSVD(cell_all_iter_bord{1}); 
-res_bord_gauche=acc_aitkenSVD(cell_all_iter_bord{2});
 
-[mat_all_iter,cell_all_iter_bord,res_mod_gauche,res_mod_droit]=iter_solve(model1,model2,10,res_bord_droit); 
-res_bord_droit=acc_aitkenSVD(cell_all_iter_bord{1}); 
-res_bord_gauche=acc_aitkenSVD(cell_all_iter_bord{2});
+y0=zeros(size(cd));
+% [mat_all_iter,cell_all_iter_bord,res_mod_gauche,res_mod_droit]=iter_solve(model1,model2,10,y0); 
+% res_bord_droit=acc_aitkenSVD(cell_all_iter_bord{1}); 
+% res_bord_gauche=acc_aitkenSVD(cell_all_iter_bord{2});
 
-disp([res_bord_droit,cell_all_iter_bord{1}(:,end)])
-disp([res_bord_gauche,cell_all_iter_bord{2}(:,end)])
-disp(norm(res_bord_droit-cell_all_iter_bord{1}(:,end)))
-disp(norm(res_bord_gauche-cell_all_iter_bord{2}(:,end)))
+% [mat_all_iter,cell_all_iter_bord,res_mod_gauche,res_mod_droit]=iter_solve(model1,model2,10,res_bord_droit); 
+% res_bord_droit=acc_aitkenSVD(cell_all_iter_bord{1}); 
+% res_bord_gauche=acc_aitkenSVD(cell_all_iter_bord{2});
 
-res_mod_gauche_nodes=res_mod_gauche.NodalSolution; 
-res_mod_gauche_nodes(cd)=res_bord_droit;
+[res_bord, res_mod, list_residu] = SchwarzAitken(model1, model2, y0, 10, 1e-6, 30);
+
+% disp([res_bord_droit,cell_all_iter_bord{1}(:,end)])
+% disp([res_bord_gauche,cell_all_iter_bord{2}(:,end)])
+% disp(norm(res_bord_droit-cell_all_iter_bord{1}(:,end)))
+% disp(norm(res_bord_gauche-cell_all_iter_bord{2}(:,end)))
+
+res_mod_gauche_nodes=res_mod{1}.NodalSolution; 
+res_mod_gauche_nodes(cd)=res_bord{1};
 
 % [p,e,t]=meshToPet(model2.Mesh);
 % F2 = pdeInterpolant(p,t,res_mod_gauche_nodes);
@@ -120,8 +123,8 @@ res_mod_gauche_nodes(cd)=res_bord_droit;
 
 % results1=solvepde(model1);
 
-res_mod_droit_nodes=res_mod_droit.NodalSolution;
-res_mod_droit_nodes(cg)=res_bord_gauche;
+res_mod_droit_nodes=res_mod{2}.NodalSolution;
+res_mod_droit_nodes(cg)=res_bord{2};
 
 % [p,e,t]=meshToPet(model1.Mesh);
 % F1 = pdeInterpolant(p,t,res_bord_gauche);
@@ -142,3 +145,10 @@ pdeplot(model2.Mesh,"XYData",res_mod_droit_nodes)
 title("Aitken SVD (Partie Droite)")
 axis equal
 saveas(gcf,"Res_After_AccSVD.jpg")
+
+figure(4)
+plot(1:length(list_residu),list_residu)
+title("Résidu de convergence")
+xlabel("Itération")
+ylabel("Résidu")
+saveas(gcf,"Residu.jpg")
