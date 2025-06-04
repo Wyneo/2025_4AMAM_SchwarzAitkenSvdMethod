@@ -1,14 +1,19 @@
-function y_0=acc_aitkenSVD(u)
+function y0=acc_aitkenSVD(u)
     [U,S,V]=svd(u);
-    epsilon=1e-10;
-    ind=find(diag(S)>epsilon);
-    n_gamma = length(ind);
-    U=U(:,ind);
-    S=S(ind,ind);
-    V=V(:,ind);
+    % % epsilon=1e-10;
+    % % ind=find(diag(S)>epsilon);
+    % n_gamma = length(ind);
+    diag_S = diag(S);
+    vec_courbure = diag_S(1:end-2) - 2*diag_S(2:end-1) + diag_S(3:end);
+    [t_max,ind]=max(vec_courbure); %maximum de la courbure
+    n_gamma=ind+1;
+    vec_ind=1:n_gamma;
+    U=U(:,vec_ind);
+    S=S(vec_ind,vec_ind);
+    V=V(:,vec_ind);
     y_chap_now=U'*u(:,end-n_gamma:end);
     y_chap_prev=U'*u(:,end-n_gamma-1:end-1);
     e_chap=y_chap_now-y_chap_prev;
     esti_P=e_chap(:,2:end)*pinv(e_chap(:,1:end-1));
-    y_0 = U*inv((eye(n_gamma)-esti_P))*(y_chap_now(:,end)-esti_P*y_chap_prev(:,end-1));
+    y0 = U*inv((eye(n_gamma)-esti_P))*(y_chap_now(:,end)-esti_P*y_chap_prev(:,end));
 end
