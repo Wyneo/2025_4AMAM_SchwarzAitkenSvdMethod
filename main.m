@@ -2,7 +2,7 @@ clear
 close all
 
 R=2;
-L=3.9;
+L=3;
 y=0; 
 x=0;
 
@@ -104,8 +104,8 @@ y0=zeros(size(cd));
 % res_bord_droit=acc_aitkenSVD(cell_all_iter_bord{1}); 
 % res_bord_gauche=acc_aitkenSVD(cell_all_iter_bord{2});
 
-[res_bord, res_mod, err_aitkenSVD] = SchwarzAitkenSVD(model1, model2, y0, 10, 1e-14, 30);
-[res_bord2, res_mod2, err_aitken] = SchwarzAitken(model1, model2, y0, 10, 1e-14, 30);
+[res_bord, res_mod, err_aitkenSVD] = SchwarzAitkenSVD(model1, model2, y0, 10, 1e-12, 30);
+[res_bord2, res_mod2, err_aitken] = SchwarzAitken(model1, model2, y0, 10, 1e-12, 30);
 [cell_all_iter, cell_all_iter_bord, res_mod_gauche, res_mod_droit, err_schwarz] = iter_solve(model1, model2, length(err_aitkenSVD)+1, y0);
 
 % disp([res_bord_droit,cell_all_iter_bord{1}(:,end)])
