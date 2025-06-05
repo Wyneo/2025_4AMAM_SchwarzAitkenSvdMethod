@@ -1,4 +1,4 @@
-function [all_iter,all_iter_bord, results1, results2]=iter_solve(model1,model2,itemax,y0) %Itérations sur les deux sous domaines
+function [all_iter,all_iter_bord, results1, results2, res_schwarz]=iter_solve(model1,model2,itemax,y0) %Itérations sur les deux sous domaines
     %model1,model2 : les sous domaines de la géométrie
     %itemax : nombre d'itérations voulues 
 
@@ -11,6 +11,7 @@ function [all_iter,all_iter_bord, results1, results2]=iter_solve(model1,model2,i
     all_iter_cg=[];
     all_iter_bord_cd=[]; 
     all_iter_bord_cg=[];
+    res_schwarz=[];
 
     %Initialisation
     % Première itération pour "intégrer le y0" dans la solution
@@ -55,11 +56,14 @@ function [all_iter,all_iter_bord, results1, results2]=iter_solve(model1,model2,i
 
     for i=2:itemax
         %Premier sous domaine
+        stock_u_res=u1(cd_1);
         applyBoundaryCondition(model1,"dirichlet","Edge",[1,2,4,5],"u",0);
         applyBoundaryCondition(model1,"dirichlet","Edge",3,"u",cl_cd_1);
 
         results1=solvepde(model1);
         u1=results1.NodalSolution;
+
+        res_schwarz=[res_schwarz;norm(u1(cd_1)-stock_u_res)];
 
         %Récupération de la solution sur le bord
         [p1,e1,t1]=meshToPet(model1.Mesh);

@@ -6,7 +6,7 @@ L=3;
 y=0; 
 x=0;
 
-long_EF_max=0.05;
+long_EF_max=0.2;
 ord_EF="Quadratic";
 
 % [model2c,mesh2c]=create2circlemesh(x,y,L,R,long_EF_max,ord_EF)
@@ -104,7 +104,9 @@ y0=zeros(size(cd));
 % res_bord_droit=acc_aitkenSVD(cell_all_iter_bord{1}); 
 % res_bord_gauche=acc_aitkenSVD(cell_all_iter_bord{2});
 
-[res_bord, res_mod, list_residu] = SchwarzAitken(model1, model2, y0, 10, 1e-6, 30);
+[res_bord, res_mod, err_aitkenSVD] = SchwarzAitkenSVD(model1, model2, y0, 10, 1e-12, 30);
+[res_bord2, res_mod2, err_aitken] = SchwarzAitken(model1, model2, y0, 10, 1e-12, 30);
+[cell_all_iter, cell_all_iter_bord, res_mod_gauche, res_mod_droit, err_schwarz] = iter_solve(model1, model2, length(err_aitkenSVD)+1, y0);
 
 % disp([res_bord_droit,cell_all_iter_bord{1}(:,end)])
 % disp([res_bord_gauche,cell_all_iter_bord{2}(:,end)])
@@ -135,6 +137,13 @@ res_mod_droit_nodes(cg)=res_bord{2};
 
 % results2=solvepde(model2);
 
+disp(norm(res_bord{1}-res_bord2{1}))
+disp(norm(res_bord{2}-res_bord2{2}))
+disp(norm(res_bord{1}-res_mod_gauche.NodalSolution(cd)))
+disp(norm(res_bord{2}-res_mod_droit.NodalSolution(cg)))
+disp(norm(res_bord2{1}-res_mod_gauche.NodalSolution(cd)))
+disp(norm(res_bord2{2}-res_mod_droit.NodalSolution(cg)))
+
 figure(3)
 subplot(1,2,1)
 pdeplot(model1.Mesh,"XYData",res_mod_gauche_nodes) 
@@ -147,8 +156,9 @@ axis equal
 saveas(gcf,"Res_After_AccSVD.jpg")
 
 figure(4)
-plot(1:length(list_residu),list_residu)
-title("Résidu de convergence")
+semilogy(1:length(err_schwarz),err_schwarz,1:length(err_aitken),err_aitken,1:length(err_aitkenSVD),err_aitkenSVD)
+title("Comparaison de la convergence entre Schwarz, Aitken et Aitken SVD")
+legend("Schwarz","Aitken","Aitken SVD")
 xlabel("Itération")
 ylabel("Résidu")
 saveas(gcf,"Residu.jpg")
