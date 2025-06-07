@@ -1,4 +1,4 @@
-function y0=acc_aitkenSVD(u)
+function y0=acc_aitken(u)
     yter_now = u(:,2:end);
     yter_prev = u(:,1:end-1);
     err=yter_now - yter_prev;

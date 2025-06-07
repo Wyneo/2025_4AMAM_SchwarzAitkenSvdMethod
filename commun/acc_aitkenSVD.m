@@ -1,9 +1,10 @@
 function y0=acc_aitkenSVD(u)
     [U,S,V]=svd(u);
-    epsilon=1e-9;
-    ind=find(diag(S)>epsilon);
-    n_gamma = length(ind);
+    epsilon=1e-10;
     diag_S = diag(S)
+    ind=find(diag_S>epsilon/diag_S(1));
+    n_gamma = length(ind);
+    %! Tentative de méthode du coude
     % vec_courbure = [diag_S(1)-5*diag_S(2)+4*diag_S(3)-diag_S(4);diag_S(1:end-2) - 2*diag_S(2:end-1) + diag_S(3:end);diag_S(end)-5*diag_S(end-1)+4*diag_S(end-2)-diag_S(end-3)];
     % [t_max,ind]=max(vec_courbure); %maximum de la courbure
     % disp(ind)
