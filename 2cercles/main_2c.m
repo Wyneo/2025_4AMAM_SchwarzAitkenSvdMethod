@@ -4,14 +4,14 @@ close all
 addpath("./commun")
 
 R=2;
-L=2.5; 
+L=2; 
 y=0; 
 x=0;
 
 circle2_sol=circle2_solution_manufactured(R,L);
 
-long_EF_max=1;
-ord_EF="Linear";
+long_EF_max=0.2;
+ord_EF="Quadratic";
 
 model1=create1circleintermodel(x,y,L,R,long_EF_max,ord_EF);
 model2=create1circleintermodel(x,y,-L,R,long_EF_max,ord_EF);
@@ -23,13 +23,20 @@ u_fun=circle2_solution_manufactured(R,L);
 u_sol_circle1=u_fun(model1.Mesh.Nodes(1,:),model1.Mesh.Nodes(2,:));
 u_sol_circle2=u_fun(model2.Mesh.Nodes(1,:),model2.Mesh.Nodes(2,:));
 
+figure(1)
+pdeplot(model1.Mesh,"XYData",u_sol_circle1)
+saveas(gcf,"Sol_Circle1.jpg")
+figure(2)
+pdeplot(model2.Mesh,"XYData",u_sol_circle2)
+saveas(gcf,"Sol_Circle2.jpg")
+
 specifyCoefficients(model1,"m",0,"d",0,"c",1,"a",0,"f",1);
 specifyCoefficients(model2,"m",0,"d",0,"c",1,"a",0,"f",1);
 
 applyBoundaryCondition(model1,"dirichlet","Edge",[1,2,3,4,5],"u",0);
 applyBoundaryCondition(model2,"dirichlet","Edge",[1,2,3,4,5],"u",0);
 
-u_temp1=solvepde(model1);
+u_temp1=solvepde(model1); % Pour imposer les condition aux limites des bords intérieurs
 u_temp2=solvepde(model2);
 u_temp1=u_temp1.NodalSolution;
 u_temp2=u_temp2.NodalSolution;
@@ -53,19 +60,25 @@ applyBoundaryCondition(model1,"dirichlet","Edge",3,"u",cl_cd_1);
 applyBoundaryCondition(model2,"dirichlet","Edge",[1,2,3,4],"u",0);
 applyBoundaryCondition(model2,"dirichlet","Edge",5,"u",cl_cg_2);
 
-stiffmatrix1=assembleFEMatrices(model1,"K").K;
-stiffmatrix2=assembleFEMatrices(model2,"K").K;
+bordmodel1=findNodes(model1.Mesh,"region","Edge",[1,2,3,4,5]);
+bordmodel2=findNodes(model2.Mesh,"region","Edge",[1,2,3,4,5]);
 
-[P1,R1,C1]=equilibrate(stiffmatrix1);
-[P2,R2,C2]=equilibrate(stiffmatrix2);
-stiffmatrix1=R1*P1*stiffmatrix1*C1;
-stiffmatrix2=R2*P2*stiffmatrix2*C2;
+freenodes1=setdiff(1:size(model1.Mesh.Nodes(1,:),2),bordmodel1); % Récupère les indices des noeuds libres
+freenodes2=setdiff(1:size(model2.Mesh.Nodes(1,:),2),bordmodel2);
 
-fmodel1=stiffmatrix1\u_sol_circle1';
-fmodel2=stiffmatrix2\u_sol_circle2';
+AssembleMatrix1=assembleFEMatrices(model1,"nullspace");
+AssembleMatrix2=assembleFEMatrices(model2,"nullspace");
 
-disp(norm(stiffmatrix1*fmodel1-u_sol_circle1',Inf));
-disp(norm(stiffmatrix2*fmodel2-u_sol_circle2',Inf));
+fmodel1_free=AssembleMatrix1.Kc*(AssembleMatrix1.B\(u_sol_circle1-AssembleMatrix1.ud));
+fmodel2_free=AssembleMatrix2.Kc*(AssembleMatrix2.B\(u_sol_circle2-AssembleMatrix2.ud));
+
+fmodel1=zeros(size(model1.Mesh.Nodes(1,:),2),1);
+fmodel2=zeros(size(model2.Mesh.Nodes(1,:),2),1);
+
+fmodel1(freenodes1)=fmodel1_free;
+fmodel2(freenodes2)=fmodel2_free;
+fmodel1(bordmodel1)=u_sol_circle1(bordmodel1); 
+fmodel2(bordmodel2)=u_sol_circle2(bordmodel2);
 
 fsource_circle1=@(location,state) function_source_f(model1,fmodel1,location,state);
 fsource_circle2=@(location,state) function_source_f(model2,fmodel2,location,state);
@@ -76,16 +89,22 @@ specifyCoefficients(model2,"m",0,"d",0,"c",1,"a",0,"f",fsource_circle2);
 cd=findNodes(model1.Mesh,"region","Edge",3);
 cg=findNodes(model2.Mesh,"region","Edge",5);
 
+y_bord={u_sol_circle1(cd); u_sol_circle2(cg)};
+
 y0=zeros(size(cd));
 
-[res_bord, res_mod, err_aitkenSVD] = SchwarzAitkenSVD_2c(model1, model2, y0, 10, 1e-12, 30);
-[res_bord2, res_mod2, err_aitken] = SchwarzAitken_2c(model1, model2, y0, 10, 1e-12, 30);
-[cell_all_iter, cell_all_iter_bord, res_mod_gauche, res_mod_droit, err_schwarz] = iter_solve2c(model1, model2, max(length(err_aitkenSVD),length(err_aitken))+1, y0, 1e-12);
-res_mod_gauche_nodes=res_mod{1}.NodalSolution; 
-res_mod_gauche_nodes(cd)=res_bord{1};
+nb_iter_schwarz=10;
+eps_arret_schwarz=1e-12;
+nb_cycle_aitken=5;
 
-res_mod_droit_nodes=res_mod{2}.NodalSolution;
-res_mod_droit_nodes(cg)=res_bord{2};
+[res_bord1, res_mod1, err_aitkenSVD] = SchwarzAitkenSVD_2c(model1, model2, y0, y_bord, nb_iter_schwarz, eps_arret_schwarz, nb_cycle_aitken);
+[res_bord2, res_mod2, err_aitken] = SchwarzAitken_2c(model1, model2, y0, y_bord, nb_iter_schwarz, eps_arret_schwarz, nb_cycle_aitken);
+[cell_all_iter, cell_all_iter_bord, res_mod_gauche, res_mod_droit, err_schwarz] = iter_solve_2c(model1, model2, max(length(err_aitkenSVD),length(err_aitken)), y0, y_bord, eps_arret_schwarz);
+res_mod_gauche_nodes=res_mod1{1}.NodalSolution;
+res_mod_gauche_nodes(cd)=res_bord1{1};
+
+res_mod_droit_nodes=res_mod1{2}.NodalSolution;
+res_mod_droit_nodes(cg)=res_bord1{2};
 
 % [p,e,t]=meshToPet(model1.Mesh);
 % F1 = pdeInterpolant(p,t,res_bord_gauche);
