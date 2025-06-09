@@ -1,9 +1,9 @@
-function [all_iter,all_iter_bord, results1, results2, res_schwarz, bool_convergence]=iter_solve2c(model1,model2,itemax,y0,y_sol,eps) %Itérations sur les deux sous domaines
+function [all_iter,all_iter_bord, results1, results2, res_schwarz, bool_convergence]=iter_solve_2c(model1,model2,itemax,y0,y_sol,eps) %Itérations sur les deux sous domaines
     %model1,model2 : les sous domaines de la géométrie
     %itemax : nombre d'itérations voulues 
 
-    cd_1=findNodes(model1.Mesh,"region","Edge",3); %arc de cercle à droite du premier sous domaine
-    cg_2=findNodes(model2.Mesh,"region","Edge",5); %arc de cercle à gauche du deuxième sous domaine
+    cd_1=findNodes(model1.Mesh,"region","Edge",[2,3]); %arc de cercle à droite du premier sous domaine
+    cg_2=findNodes(model2.Mesh,"region","Edge",[1,5]); %arc de cercle à gauche du deuxième sous domaine
 
     all_iter_cd=[]; 
     all_iter_cg=[];
@@ -13,8 +13,8 @@ function [all_iter,all_iter_bord, results1, results2, res_schwarz, bool_converge
 
     %Initialisation
     % Première itération pour "intégrer le y0" dans la solution
-    applyBoundaryCondition(model1,"dirichlet","Edge",[1,2,4,5],"u",0);
-    applyBoundaryCondition(model1,"dirichlet","Edge",3,"u",0);
+    applyBoundaryCondition(model1,"dirichlet","Edge",[1,4:7],"u",0);
+    applyBoundaryCondition(model1,"dirichlet","Edge",[2,3],"u",0);
 
     u_temp=solvepde(model1).NodalSolution;
     u_temp(cd_1)=y0;
@@ -30,8 +30,8 @@ function [all_iter,all_iter_bord, results1, results2, res_schwarz, bool_converge
     u2=u_temp; 
     while (res_schwarz(end)>eps &&  i<=itemax)
         %Premier sous domaine
-        applyBoundaryCondition(model1,"dirichlet","Edge",[1,2,4,5],"u",0);
-        applyBoundaryCondition(model1,"dirichlet","Edge",3,"u",cl_cd_1);
+        applyBoundaryCondition(model1,"dirichlet","Edge",[1,4:7],"u",0);
+        applyBoundaryCondition(model1,"dirichlet","Edge",[2,3],"u",cl_cd_1);
 
         results1=solvepde(model1);
         u1=results1.NodalSolution;
@@ -44,8 +44,8 @@ function [all_iter,all_iter_bord, results1, results2, res_schwarz, bool_converge
         cl_cg_2=@(region,state) evaluate(F1,region.x,region.y); %condition initiale
 
         %Deuxième sous domaine
-        applyBoundaryCondition(model2,"dirichlet","Edge",[1,2,3,4],"u",0);
-        applyBoundaryCondition(model2,"dirichlet","Edge",5,"u",cl_cg_2);
+        applyBoundaryCondition(model2,"dirichlet","Edge",[2:4,6:7],"u",0);
+        applyBoundaryCondition(model2,"dirichlet","Edge",[1,5],"u",cl_cg_2);
 
         results2=solvepde(model2);
         u2=results2.NodalSolution;

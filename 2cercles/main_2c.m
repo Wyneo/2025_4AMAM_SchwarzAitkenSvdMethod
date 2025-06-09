@@ -24,25 +24,34 @@ u_sol_circle1=u_fun(model1.Mesh.Nodes(1,:),model1.Mesh.Nodes(2,:));
 u_sol_circle2=u_fun(model2.Mesh.Nodes(1,:),model2.Mesh.Nodes(2,:));
 
 figure(1)
+pdegplot(model1,"EdgeLabels","on","FaceLabels","on");
+hold on
+pdegplot(model2,"EdgeLabels","on","FaceLabels","on");
+hold off
+title("Geometrie")
+axis equal
+saveas(gcf,"geom.jpg")
+
+figure(2)
 pdeplot(model1.Mesh,"XYData",u_sol_circle1)
 saveas(gcf,"Sol_Circle1.jpg")
-figure(2)
+figure(3)
 pdeplot(model2.Mesh,"XYData",u_sol_circle2)
 saveas(gcf,"Sol_Circle2.jpg")
 
 specifyCoefficients(model1,"m",0,"d",0,"c",1,"a",0,"f",1);
 specifyCoefficients(model2,"m",0,"d",0,"c",1,"a",0,"f",1);
 
-applyBoundaryCondition(model1,"dirichlet","Edge",[1,2,3,4,5],"u",0);
-applyBoundaryCondition(model2,"dirichlet","Edge",[1,2,3,4,5],"u",0);
+applyBoundaryCondition(model1,"dirichlet","Edge",[1:model1.Geometry.NumEdges],"u",0);
+applyBoundaryCondition(model2,"dirichlet","Edge",[1:model2.Geometry.NumEdges],"u",0);
 
 u_temp1=solvepde(model1); % Pour imposer les condition aux limites des bords intérieurs
 u_temp2=solvepde(model2);
 u_temp1=u_temp1.NodalSolution;
 u_temp2=u_temp2.NodalSolution;
 
-cd=findNodes(model1.Mesh,"region","Edge",3);
-cg=findNodes(model2.Mesh,"region","Edge",5);
+cd=findNodes(model1.Mesh,"region","Edge",[2,3]);
+cg=findNodes(model2.Mesh,"region","Edge",[1,5]);
 
 u_temp1(cd)=u_sol_circle1(cd);
 u_temp2(cg)=u_sol_circle2(cg);
@@ -55,13 +64,13 @@ cl_cd_1=@(region,state) evaluate(F1,region.x,region.y);
 F2 = pdeInterpolant(p2,t2,u_temp2);
 cl_cg_2=@(region,state) evaluate(F2,region.x,region.y);
 
-applyBoundaryCondition(model1,"dirichlet","Edge",[1,2,4,5],"u",0);
-applyBoundaryCondition(model1,"dirichlet","Edge",3,"u",cl_cd_1);
-applyBoundaryCondition(model2,"dirichlet","Edge",[1,2,3,4],"u",0);
-applyBoundaryCondition(model2,"dirichlet","Edge",5,"u",cl_cg_2);
+applyBoundaryCondition(model1,"dirichlet","Edge",[1,4:7],"u",0);
+applyBoundaryCondition(model1,"dirichlet","Edge",[2,3],"u",cl_cd_1);
+applyBoundaryCondition(model2,"dirichlet","Edge",[2:4,6:7],"u",0);
+applyBoundaryCondition(model2,"dirichlet","Edge",[1,5],"u",cl_cg_2);
 
-bordmodel1=findNodes(model1.Mesh,"region","Edge",[1,2,3,4,5]);
-bordmodel2=findNodes(model2.Mesh,"region","Edge",[1,2,3,4,5]);
+bordmodel1=findNodes(model1.Mesh,"region","Edge",[1:5]);
+bordmodel2=findNodes(model2.Mesh,"region","Edge",[1:5]);
 
 freenodes1=setdiff(1:size(model1.Mesh.Nodes(1,:),2),bordmodel1); % Récupère les indices des noeuds libres
 freenodes2=setdiff(1:size(model2.Mesh.Nodes(1,:),2),bordmodel2);
@@ -86,8 +95,8 @@ fsource_circle2=@(location,state) function_source_f(model2,fmodel2,location,stat
 specifyCoefficients(model1,"m",0,"d",0,"c",1,"a",0,"f",fsource_circle1);
 specifyCoefficients(model2,"m",0,"d",0,"c",1,"a",0,"f",fsource_circle2);
 
-cd=findNodes(model1.Mesh,"region","Edge",3);
-cg=findNodes(model2.Mesh,"region","Edge",5);
+cd=findNodes(model1.Mesh,"region","Edge",[2,3]);
+cg=findNodes(model2.Mesh,"region","Edge",[1,5]);
 
 y_bord={u_sol_circle1(cd); u_sol_circle2(cg)};
 
