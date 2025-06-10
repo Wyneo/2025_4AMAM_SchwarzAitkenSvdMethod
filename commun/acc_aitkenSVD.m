@@ -1,7 +1,6 @@
-function y0=acc_aitkenSVD(u)
+function y0=acc_aitkenSVD(u,epsilon)
     [U,S,V]=svd(u);
-    epsilon=1e-10;
-    diag_S = diag(S)
+    diag_S = diag(S);
     ind=find(diag_S>epsilon/diag_S(1));
     n_gamma = length(ind);
     %! Tentative de méthode du coude
