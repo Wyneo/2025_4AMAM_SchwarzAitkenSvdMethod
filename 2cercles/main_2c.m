@@ -4,7 +4,7 @@ close all
 addpath("../commun")
 
 R=2;
-L=2.8; %Attention peut changer la numérotation des arrêtes
+L=2.8; %Attention si L>2.8 la numérotation des arêtes change
 y=0; 
 x=0;
 
@@ -33,7 +33,7 @@ y0=zeros(size(cd));
 
 nb_iter_schwarz=10;
 eps_arret_schwarz=1e-12;
-nb_cycle_aitken=5;
+nb_cycle_aitken=10;
 disp("Schwarz - Aitken SVD")
 [res_bord1, res_mod1, err_aitkenSVD] = SchwarzAitkenSVD_2c(model1, model2, y0, nb_iter_schwarz, eps_arret_schwarz, nb_cycle_aitken);
 disp("Schwarz - Aitken")

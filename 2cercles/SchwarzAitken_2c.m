@@ -10,7 +10,7 @@ function [res_bord, res_mod, list_residu] = SchwarzAitken_2c(model1, model2, y0,
         res_bord_gauche=acc_aitken(cell_all_iter_bord{2});
         y_prec=y0;
         y0=res_bord_droit;
-        if(list_residu(end)-list_residu(end-(nb_iter_schwarz-1))>eps)
+        if(list_residu(end)-list_residu(end-(nb_iter_schwarz-2))>eps)
             disp("Augmentation du résidu, arrêt des itérations : Simple ");
             bool_convergence=true; % Dans le cas où le résidu augmente, on arrête
         end

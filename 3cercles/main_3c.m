@@ -1,10 +1,10 @@
 clear 
 close all
 
-addpath("./commun")
+addpath("../commun")
 
 R=2;
-L=3; %Attention peut changer la numérotation des arrêtes
+L=3; %Attention peut changer la numérotation des arêtes
 y=0; 
 x=0;
 
@@ -44,7 +44,6 @@ disp("Schwarz - Aitken");
 [res_bord2, res_mod2, err_aitken] = SchwarzAitken_3c(model1, model2, model3, y0, nb_iter_schwarz, eps_arret_schwarz, nb_cycle_aitken);
 disp("Schwarz, nb ité = " + length(err_aitkenSVD)+1);
 [cell_all_iter, cell_all_iter_bord, res_mod_c1, res_mod_c2, res_mod_c3, err_schwarz] = iter_solve_3c(model1, model2, model3, length(err_aitkenSVD)+1, y0, eps_arret_schwarz);
-disp("Fin des itérations")
 
 res_mod_c1_nodes=res_mod{1}.NodalSolution; 
 res_mod_c1_nodes(c1)=res_bord{1};

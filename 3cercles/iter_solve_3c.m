@@ -13,10 +13,10 @@ function [all_iter,all_iter_bord, results1, results2, results3, res_schwarz, boo
     all_iter_bord_c1=[];
     all_iter_bord_c2=[];
     all_iter_bord_c3=[];
-    res_schwarz=[10*eps];
-    res_schwarz_1=[10*eps];
-    res_schwarz_2=[10*eps];
-    res_schwarz_3=[10*eps];
+    res_schwarz=[];
+    res_schwarz_1=[];
+    res_schwarz_2=[];
+    res_schwarz_3=[];
 
     %Initialisation
     % Première itération pour "intégrer le y0" dans la solution
@@ -89,7 +89,7 @@ function [all_iter,all_iter_bord, results1, results2, results3, res_schwarz, boo
         results1=solvepde(model1);
         u1=results1.NodalSolution;
 
-        res_schwarz_1=[res_schwarz_1;norm(u1(c1)-stock_u1_res,Inf)];
+        res_schwarz_1=norm(u1(c1)-stock_u1_res,Inf);
 
         %Récupération de la solution sur le bord
         [p1,e1,t1]=meshToPet(model1.Mesh);
@@ -110,7 +110,7 @@ function [all_iter,all_iter_bord, results1, results2, results3, res_schwarz, boo
         F2 = pdeInterpolant(p2,t2,u2);
         u_c2=@(region,state) evaluate(F2,region.x,region.y); %résultat sur bord du deuxième sous domaine
 
-        res_schwarz_2=[res_schwarz_2;norm(u2(c2)-stock_u2_res,Inf)];
+        res_schwarz_2=norm(u2(c2)-stock_u2_res,Inf);
 
         %Troisième sous domaine
         stock_u3_res=u3(c3);
@@ -125,7 +125,7 @@ function [all_iter,all_iter_bord, results1, results2, results3, res_schwarz, boo
         F3 = pdeInterpolant(p3,t3,u3);
         u_c3=@(region,state) evaluate(F3,region.x,region.y); %résultat sur bord du troisième sous domaine
 
-        res_schwarz_3=[res_schwarz_3;norm(u3(c3)-stock_u3_res,Inf)];
+        res_schwarz_3=norm(u3(c3)-stock_u3_res,Inf);
 
         %Stockage des itérations
         all_iter_c1=[all_iter_c1,u1];
@@ -135,7 +135,7 @@ function [all_iter,all_iter_bord, results1, results2, results3, res_schwarz, boo
         all_iter_bord_c2=[all_iter_bord_c2,u2(c2)]; % bord deuxième sous domaine
         all_iter_bord_c3=[all_iter_bord_c3,u3(c3)]; % bord troisième sous domaine
         i=i+1;
-        res_schwarz=[res_schwarz; max(res_schwarz_1,res_schwarz_2)]; % Résidu de Schwarz
+        res_schwarz=[res_schwarz; max(max(res_schwarz_1,res_schwarz_2),res_schwarz_3)]; % Résidu de Schwarz
     end
     res_schwarz=res_schwarz(2:end); % Enlever la première valeur 
     bool_convergence=(res_schwarz(end)<eps);
