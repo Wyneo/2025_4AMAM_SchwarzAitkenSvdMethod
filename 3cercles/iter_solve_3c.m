@@ -10,9 +10,9 @@ function [all_iter,all_iter_bord, results1, results2, results3, res_schwarz, boo
     all_iter_c1=[];
     all_iter_c2=[];
     all_iter_c3=[];
-    all_iter_bord_c1=[];
-    all_iter_bord_c2=[];
-    all_iter_bord_c3=[];
+    all_iter_bord_c1=[y0{1}];
+    all_iter_bord_c2=[y0{2}];
+    all_iter_bord_c3=[y0{3}];
     res_schwarz=[];
     res_schwarz_1=[];
     res_schwarz_2=[];
@@ -24,7 +24,7 @@ function [all_iter,all_iter_bord, results1, results2, results3, res_schwarz, boo
     applyBoundaryCondition(model1,"dirichlet","Edge",[2,3,4],"u",0);
 
     u_temp=solvepde(model1).NodalSolution;
-    u_temp(c1)=y0;
+    u_temp(c1)=y0{1};
 
     [p1,e1,t1]=meshToPet(model1.Mesh);
     F1 = pdeInterpolant(p1,t1,u_temp);

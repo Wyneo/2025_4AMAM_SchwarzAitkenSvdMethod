@@ -8,8 +8,8 @@ function [all_iter,all_iter_bord, results1, results2, res_schwarz, bool_converge
 
     all_iter_cd=[]; 
     all_iter_cg=[];
-    all_iter_bord_cd=[]; 
-    all_iter_bord_cg=[];
+    all_iter_bord_cd=[y0{1}]; 
+    all_iter_bord_cg=[y0{2}];
     res_schwarz=[];
     res_schwarz_1=[];
     res_schwarz_2=[];
@@ -20,7 +20,7 @@ function [all_iter,all_iter_bord, results1, results2, res_schwarz, bool_converge
     applyBoundaryCondition(model1,"dirichlet","Edge",[2,3],"u",0);
 
     u_temp=solvepde(model1).NodalSolution;
-    u_temp(cd_1)=y0;
+    u_temp(cd_1)=y0{1};
 
     [p1,e1,t1]=meshToPet(model1.Mesh);
     F1 = pdeInterpolant(p1,t1,u_temp);

@@ -1,6 +1,7 @@
 function [res_bord, res_mod, list_residu] = SchwarzAitkenSVD_2c(model1, model2, y0, nb_iter_schwarz, eps, max_iter)
     i=0; 
-    y_prec=y0-1; 
+    y_prec={y0{1}-1,y0{2}-1};
+    %y_prec=y0-1; 
     list_residu=[10];
     bool_convergence=false; % Pour arrêter si le résidu augmente
     while(i<max_iter && list_residu(end)>eps && not(bool_convergence))
@@ -9,8 +10,10 @@ function [res_bord, res_mod, list_residu] = SchwarzAitkenSVD_2c(model1, model2, 
         list_residu=[list_residu; res_schwarz];
         res_bord_droit=acc_aitkenSVD(cell_all_iter_bord{1},1e-10); 
         res_bord_gauche=acc_aitkenSVD(cell_all_iter_bord{2},1e-10);
-        y_prec=y0;
-        y0=res_bord_droit;
+        y_prec={y0{1},y0{2}};
+        %y_prec=y0;
+        y0={res_bord_droit,res_bord_gauche};
+        %y0=res_bord_droit;
         if(list_residu(end)-list_residu(end-(nb_iter_schwarz-2))>eps)
             disp("Augmentation du résidu, arrêt des itérations : SVD");
             bool_convergence=true; % Dans le cas où le résidu augmente, on arrête

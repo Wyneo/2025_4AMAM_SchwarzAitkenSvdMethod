@@ -4,7 +4,7 @@ close all
 addpath("../commun")
 
 R=2;
-L=3; %Attention peut changer la numérotation des arêtes
+L=2; %Attention peut changer la numérotation des arêtes
 y=0; 
 x=0;
 
@@ -33,15 +33,15 @@ c1=findNodes(model1.Mesh,"region","Edge",[2,3,4]);
 c2=findNodes(model2.Mesh,"region","Edge",[6,1,2]);
 c3=findNodes(model3.Mesh,"region","Edge",[3,4,5]);
 
-y0=zeros(size(c1,2),1);
+y0={zeros(size(c1))',zeros(size(c2))',zeros(size(c3))'};
 
 nb_iter_schwarz=15;
 eps_arret_schwarz=1e-12;
 nb_cycle_aitken=10;
 disp("Schwarz - Aitken SVD");
 [res_bord, res_mod, err_aitkenSVD] = SchwarzAitkenSVD_3c(model1, model2, model3, y0, nb_iter_schwarz, eps_arret_schwarz, nb_cycle_aitken);
-disp("Schwarz - Aitken");
-[res_bord2, res_mod2, err_aitken] = SchwarzAitken_3c(model1, model2, model3, y0, nb_iter_schwarz, eps_arret_schwarz, nb_cycle_aitken);
+% disp("Schwarz - Aitken");
+% [res_bord2, res_mod2, err_aitken] = SchwarzAitken_3c(model1, model2, model3, y0, nb_iter_schwarz, eps_arret_schwarz, nb_cycle_aitken);
 disp("Schwarz, nb ité = " + length(err_aitkenSVD)+1);
 [cell_all_iter, cell_all_iter_bord, res_mod_c1, res_mod_c2, res_mod_c3, err_schwarz] = iter_solve_3c(model1, model2, model3, length(err_aitkenSVD)+1, y0, eps_arret_schwarz);
 
@@ -54,7 +54,7 @@ res_mod_c2_nodes(c2)=res_bord{2};
 res_mod_c3_nodes=res_mod{3}.NodalSolution;
 res_mod_c3_nodes(c3)=res_bord{3};
 
-figure(3)
+figure(2)
 subplot(1,3,1)
 pdeplot(model1.Mesh,"XYData",res_mod_c1_nodes) 
 title("Aitken SVD (Cercle 1)")
@@ -69,10 +69,18 @@ title("Aitken SVD (Cercle 3)")
 axis equal
 saveas(gcf,"Res_After_AccSVD.jpg")
 
-figure(4)
-semilogy(1:length(err_schwarz),err_schwarz,1:length(err_aitken),err_aitken,1:length(err_aitkenSVD),err_aitkenSVD)
-title("Comparaison de la convergence entre Schwarz, Aitken et Aitken SVD")
-legend("Schwarz","Aitken","Aitken SVD")
+% figure(3)
+% semilogy(1:length(err_schwarz),err_schwarz,1:length(err_aitken),err_aitken,1:length(err_aitkenSVD),err_aitkenSVD)
+% title("Comparaison de la convergence entre Schwarz, Aitken et Aitken SVD")
+% legend("Schwarz","Aitken","Aitken SVD")
+% xlabel("Itération")
+% ylabel("Résidu")
+% saveas(gcf,"Residu.jpg")
+
+figure(3)
+semilogy(1:length(err_schwarz),err_schwarz,1:length(err_aitkenSVD),err_aitkenSVD)
+title("Comparaison de la convergence entre Schwarz et Aitken SVD")
+legend("Schwarz","Aitken SVD")
 xlabel("Itération")
 ylabel("Résidu")
 saveas(gcf,"Residu.jpg")
